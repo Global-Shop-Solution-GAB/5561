@@ -1,0 +1,99 @@
+Program.Sub.ScreenSU.Start
+Gui.frmSalesRep..Create
+Gui.frmSalesRep..Caption("Email Quote to Sales Reps Configuration")
+Gui.frmSalesRep..Size(7290,3780)
+Gui.frmSalesRep..MinX(0)
+Gui.frmSalesRep..MinY(0)
+Gui.frmSalesRep..Position(0,0)
+Gui.frmSalesRep..BackColor(-2147483633)
+Gui.frmSalesRep..MousePointer(0)
+Gui.frmSalesRep..Event(UnLoad,frmSalesRep_UnLoad)
+Gui.frmSalesRep.gsgcSalesRep.Create(GsGridControl)
+Gui.frmSalesRep.gsgcSalesRep.Size(6765,2550)
+Gui.frmSalesRep.gsgcSalesRep.Position(120,75)
+Gui.frmSalesRep.cmdSave.Create(Button)
+Gui.frmSalesRep.cmdSave.Size(1455,375)
+Gui.frmSalesRep.cmdSave.Position(150,2700)
+Gui.frmSalesRep.cmdSave.Caption("Save")
+Gui.frmSalesRep.cmdSave.Event(Click,cmdSave_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.cmdSave_Click.Start
+f.Intrinsic.Control.Try
+	v.Local.sFileLocat.Declare(string)
+	f.Intrinsic.String.Concat(v.Caller.GasDir,"\",V.Caller.CompanyCode,"_GAB_5561_EMAIL_REP.xml",v.Local.sFileLocat)
+	f.Data.DataTable.SaveToXML("dt",0,true,v.Local.sfileLocat)
+	f.Intrinsic.UI.Msgbox("Successfully Updated.")
+f.Intrinsic.Control.Catch
+	f.Intrinsic.UI.Msgbox(v.Ambient.ErrorDescription)
+	f.Intrinsic.Control.CallSub(frmSalesRep_UnLoad)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdSave_Click.End
+
+Program.Sub.Main.Start
+f.Intrinsic.Control.Try
+	f.ODBC.Connection!con.opencompanyconnection
+	v.Local.ssql.Declare
+	v.Local.sSales.Declare
+	v.Local.i.Declare(long)
+	v.Local.ssql.Set("SELECT NAME as 'SalesRep' FROM V_SALESPERSONS")
+	f.Data.DataTable.CreateFromSQL("dtSales","con",v.Local.ssql)
+	f.ODBC.Connection!con.Close
+	F.Intrinsic.Control.For(v.Local.i,0,v.DataTable.dtSales.RowCount--,1)
+		f.Intrinsic.String.Concat(v.Local.sSales,v.DataTable.dtSales(v.Local.i).SalesRep!fieldvaltrim,"*!*",v.Local.sSales)
+	F.Intrinsic.Control.Next(v.Local.i)
+	
+	'Check if the file exists
+	v.Local.bFileCheck.Declare(boolean)
+	v.Local.sFileLocat.Declare(string)
+	f.Intrinsic.String.Concat(v.Caller.GasDir,"\",V.Caller.CompanyCode,"_GAB_5561_EMAIL_REP.xml",v.Local.sFileLocat)
+	f.Intrinsic.File.Exists(v.Local.sFileLocat,v.Local.bFileCheck)
+	f.Intrinsic.Control.If(v.Local.bFileCheck)
+		f.Data.DataTable.CreateFromXML("dt",v.Local.sFileLocat,true)
+	f.Intrinsic.Control.Else
+		f.Data.DataTable.Create("dt",true)
+		f.Data.DataTable.AddColumn("dt","SalesRep","String")
+		f.Data.DataTable.AddColumn("dt","Active","Boolean")
+	f.Intrinsic.Control.EndIf
+	
+	'Set Column Properties
+	gui.frmSalesRep.gsgcSalesRep.DataSource("dt")
+	gui.frmSalesRep.gsgcSalesRep.AddGridviewFromDatatable("gv","dt")
+	gui.frmSalesRep.gsgcSalesRep.SetGridviewProperty("gv","AllowAddRows","True")
+	gui.frmSalesRep.gsgcSalesRep.SetGridviewProperty("gv","AllowDeleteRows","True")
+	gui.frmSalesRep.gsgcSalesRep.SetColumnProperty("gv","SalesRep","ReadOnly","False")
+	gui.frmSalesRep.gsgcSalesRep.SetColumnProperty("gv","SalesRep","AllowEdit","True")
+	gui.frmSalesRep.gsgcSalesRep.SetColumnProperty("gv","Active","ReadOnly","False")
+	gui.frmSalesRep.gsgcSalesRep.SetColumnProperty("gv","Active","AllowEdit","True")
+	'Set Bold
+	gui.frmSalesRep.gsgcSalesRep.SetColumnProperty("gv","SalesRep","HeaderFontBold","True")
+	gui.frmSalesRep.gsgcSalesRep.SetColumnProperty("gv","Active","HeaderFontBold","True")
+	'Set drop down list
+	gui.frmSalesRep.gsgcSalesRep.ColumnEdit("gv","SalesRep","Dropdownlist",v.Local.sSales)
+	
+	'0 - None
+	'1 - Top
+	'2 - Bottom
+	'4 - Left
+	'8 - Right
+	gui.frmSalesRep.gsgcSalesRep.anchor(15)
+	GUI.frmSalesRep.cmdSave.ANCHOR(6)
+	
+	'Show form
+	gui.frmSalesRep..Show
+	
+f.Intrinsic.Control.Catch
+	f.Intrinsic.UI.Msgbox(v.Ambient.ErrorDescription)
+	f.Intrinsic.Control.CallSub(frmSalesRep_UnLoad)
+f.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+Program.Sub.frmSalesRep_UnLoad.Start
+F.Intrinsic.Control.End
+Program.Sub.frmSalesRep_UnLoad.End
+Program.Sub.cmdSave_Click.Start
+Program.Sub.cmdSave_Click.End
+
+
